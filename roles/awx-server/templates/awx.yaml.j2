@@ -1,0 +1,11 @@
+---
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx
+spec:
+  auto_upgrade: true
+  service_type: nodeport
+  nodeport_port: {{ nodeport_port }}
+  ingress_type: ingress
+...

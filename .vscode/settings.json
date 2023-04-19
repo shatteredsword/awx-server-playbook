@@ -1,0 +1,9 @@
+{
+	"yaml.schemas": {
+		"https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/tasks": "file:///home/seanm/repos/github/awx-server-playbook/roles/awx-server/tasks/awx-cli.yml"
+	},
+	"files.associations": {
+		"*.yml": "ansible",
+		"*.j2": "ansible-jinja"
+	}
+}

@@ -1,0 +1,20 @@
+---
+- name: Create AWX awx_project_directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ awx_project_directory }}"
+    state: directory
+    mode: '0755'
+    recurse: true
+    owner: "{{ ansible_user_id }}"
+    group: nogroup
+- name: Install Minikube
+  ansible.builtin.include_tasks: minikube.yml
+  when: k8s_method == "Minikube"
+- name: Install K3s
+  ansible.builtin.include_tasks: k3s.yml
+  when: k8s_method == "K3s"
+- name: Install MicroK8s
+  ansible.builtin.include_tasks: microk8s-on-linux.yml
+  when: k8s_method == "MicroK8s"
+...

@@ -1,0 +1,30 @@
+---
+- name: Install Nginx Webserver
+  become: true
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  register: nginx_installed
+- name: Enable Nginx Service
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started
+  when: nginx_installed is changed # noqa: no-handler
+  changed_when: nginx_installed is changed
+- name: Configure nginx host file
+  become: true
+  ansible.builtin.template:
+    src: awx_nginx.conf.j2
+    dest: /etc/nginx/sites-available/default
+    mode: '644'
+  register: nginx_hostfile
+- name: Reload Nginx Service
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  when: nginx_hostfile is changed # noqa: no-handler
+  changed_when: nginx_hostfile is changed
+...

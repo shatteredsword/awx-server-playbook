@@ -1,0 +1,22 @@
+---
+- name: Get k3s installation script
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ k3s_url }}"
+    dest: "{{ awx_project_directory }}/k3s.sh"
+    mode: "700"
+- name: Execute k3s installation script
+  become: true
+  ansible.builtin.command: "/bin/sh {{ awx_project_directory }}/k3s.sh"
+  changed_when: true
+- name: Wait for K3s pods to be ready
+  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+    -n kube-system
+    -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'
+    --sort-by='{.status.containerStatuses[*].image}'"
+  register: web_pods_status
+  until: web_pods_status.stdout == "falsefalsetrue truetruetruetruetrue"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+...

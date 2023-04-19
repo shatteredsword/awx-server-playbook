@@ -1,0 +1,19 @@
+---
+- name: Install Snap
+  become: true
+  ansible.builtin.package:
+    name: snapd
+    state: present
+- name: Install MicroK8s
+  become: true
+  community.general.snap:
+    name: microk8s
+    state: present
+    classic: true
+- name: Add ansible to microk8s group
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    groups: microk8s
+    append: true
+...

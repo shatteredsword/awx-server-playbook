@@ -1,0 +1,18 @@
+---
+- name: Nginx Configuration
+  ansible.builtin.include_tasks: nginx.yml
+- name: Firewall
+  ansible.builtin.include_tasks: firewall.yml
+- name: Install Kubernetes
+  ansible.builtin.include_tasks: kubernetes.yml
+- name: Install Kustomize
+  ansible.builtin.include_tasks: kustomize.yml
+- name: Install AWX Operator
+  ansible.builtin.include_tasks: awx-operator.yml
+- name: Add Kubernetes Secrets
+  ansible.builtin.include_tasks: kubernetes-secrets.yml
+- name: Install AWX
+  ansible.builtin.include_tasks: awx-instance.yml
+# - name: Install AWX Command Line Utilities
+#   ansible.builtin.include_tasks: awx-cli.yml
+...

@@ -1,0 +1,43 @@
+---
+amount_of_ram: 6g
+no_of_cpus: 4
+awx_project_directory: "/opt/awx"
+web_port: 80
+awx_release_url: https://api.github.com/repos/ansible/awx-operator/releases/latest
+docker_ubuntu_key_url: https://download.docker.com/linux/ubuntu/gpg
+docker_apt_keyring_file: /etc/apt/keyrings/docker.gpg
+docker_ubuntu_repo_url: https://download.docker.com/linux/ubuntu
+awx_operator_kustomization_directory: operator
+awx_kustomization_directory: kustomize
+awx_secrets_directory: secrets
+github_base: "https://github.com"
+github_release_base: "https://api.github.com/repos"
+github_release_end: "releases/latest"
+github_download: "releases/download"
+gpg_keys_directory: keys
+k3s_url: "https://get.k3s.io"
+kustomize_url: "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.0.1/kustomize_v5.0.1_linux_amd64.tar.gz"
+kustomize_install_directory: /usr/bin
+minikube_service_name: minikube
+nginx_config_name: awx
+nodeport_port: 30080
+systemd_installation_directory: /etc/systemd/system
+architecture_mapping:
+  x86_64: amd64
+  armv6l: armhf
+  armv7l: armhf
+  aarch64: arm64
+  i386: i386
+  ppc64: ppc64le
+  s390x: x390x
+kustomize_mapping:
+  x86_64: amd64
+  aarch64: arm64
+  Linux: linux
+  ppc64: ppc64le
+  s390x: s390x
+kubectl_mapping:
+  MicroK8s: "microk8s kubectl"
+  Minikube: "minikube kubectl --"
+  K3s: "sudo k3s kubectl"
+...
