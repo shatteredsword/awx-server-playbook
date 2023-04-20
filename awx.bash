@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 kubernetes_menu() {
-	# "MicroK8s" "NOT YET SUPPORTED" ON \
 	KUBERNETES=$(whiptail --title "AWX Installation" --radiolist \
 	"Choose Your Kubernetes Distribution" 20 42 4 \
 	"Minikube" "Kubernetes-maintained" ON \
 	"K3s" "Lightweight Kubernetes" OFF \
+	"MicroK8s" "Canonical-maintained" OFF \
 	3>&1 1>&2 2>&3)
 	EXITSTATUS=$?
 	if [ $EXITSTATUS = 1 ]; then

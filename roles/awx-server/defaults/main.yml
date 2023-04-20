@@ -16,6 +16,7 @@ github_release_end: "releases/latest"
 github_download: "releases/download"
 gpg_keys_directory: keys
 k3s_url: "https://get.k3s.io"
+k3s_install_directory: /usr/local/bin
 kustomize_url: "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.0.1/kustomize_v5.0.1_linux_amd64.tar.gz"
 kustomize_install_directory: /usr/bin
 minikube_service_name: minikube

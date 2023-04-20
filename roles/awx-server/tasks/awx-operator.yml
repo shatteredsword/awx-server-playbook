@@ -27,10 +27,12 @@
   ansible.builtin.command: "kustomize build {{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}
     -o {{ awx_project_directory }}/awx-operator.yaml"
   when: not base_build_file.stat.exists
-  changed_when: not base_build_file.stat.exists
+  changed_when: not base_build_file.stat.exists # TODO: make changed_when section accurate
 - name: Check if awx operator already exists
-  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods -l
-    control-plane=controller-manager -n awx -o=jsonpath='{range.items[*]}{.status.containerStatuses[*].ready}{end}'"
+  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+    -l control-plane=controller-manager
+    -n awx
+    -o=jsonpath='{range.items[*]}{.status.containerStatuses[*].ready}{end}'"
   register: awx_operator_status
   changed_when: false
 - name: Build awx operator cluster

@@ -16,4 +16,75 @@
     name: "{{ ansible_user_id }}"
     groups: microk8s
     append: true
+- name: Reload SSH Connection
+  ansible.builtin.meta:
+    reset_connection
+- name: Wait for microk8s pods to be ready
+  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+    -n kube-system
+    -l 'k8s-app in (calico-node, calico-kube-controllers)'
+    -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: microk8s_pods_status
+  until: microk8s_pods_status.stdout == "truetrue"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+- name: Get Status of Addons
+  ansible.builtin.command: "microk8s status --format yaml"
+  register: microk8s_addon_status
+  changed_when: false
+- name: Enable Storage Addon
+  ansible.builtin.command: "microk8s enable hostpath-storage"
+  vars:
+    extracted_value: "{{ 0 | ansible.builtin.extract(addon_status) }}"
+    addon_status: "{{ microk8s_addon_status.stdout | from_yaml | to_json | from_json | community.general.json_query(query) }}"
+    query: addons[?name=='hostpath-storage'].status
+  when: extracted_value == "disabled"
+  changed_when: extracted_value == "disabled"
+- name: Wait for storage pods to be ready
+  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+    -n kube-system
+    -l 'k8s-app=hostpath-provisioner'
+    -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: microk8s_pods_status
+  until: microk8s_pods_status.stdout == "true"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+- name: Enable DNS Addon
+  ansible.builtin.command: "microk8s enable dns"
+  vars:
+    extracted_value: "{{ 0 | ansible.builtin.extract(addon_status) }}"
+    addon_status: "{{ microk8s_addon_status.stdout | from_yaml | to_json | from_json | community.general.json_query(query) }}"
+    query: addons[?name=='dns'].status
+  when: extracted_value == "disabled"
+  changed_when: extracted_value == "disabled"
+- name: Wait for dns pods to be ready
+  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+    -n kube-system
+    -l 'k8s-app=kube-dns'
+    -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: microk8s_pods_status
+  until: microk8s_pods_status.stdout == "true"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+- name: Enable Ingress Addon
+  ansible.builtin.command: "microk8s enable ingress"
+  vars:
+    extracted_value: "{{ 0 | ansible.builtin.extract(addon_status) }}"
+    addon_status: "{{ microk8s_addon_status.stdout | from_yaml | to_json | from_json | community.general.json_query(query) }}"
+    query: addons[?name=='ingress'].status
+  when: extracted_value == "disabled"
+  changed_when: extracted_value == "disabled"
+- name: Wait for ingress pods to be ready
+  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+    -n ingress
+    -l 'name=nginx-ingress-microk8s'
+    -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: microk8s_pods_status
+  until: microk8s_pods_status.stdout == "true"
+  retries: 10000000
+  delay: 10
+  changed_when: false
 ...
