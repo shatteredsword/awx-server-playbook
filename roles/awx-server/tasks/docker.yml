@@ -1,39 +1,39 @@
 ---
-- name: Install Prerequisite Packages
+- name: Install prerequisite packages
   become: true
   ansible.builtin.package:
     name:
       - ca-certificates
       - gnupg
-- name: Create temp directory for docker key
+- name: Create Docker key temporary directory
   become: true
   ansible.builtin.file:
     path: "{{ awx_project_directory }}/{{ gpg_keys_directory }}"
     state: directory
     owner: "{{ ansible_user_id }}"
-    group: "nogroup"
-    mode: '700'
-- name: Download docker signing key
+    group: "{{ linux_group }}"
+    mode: '0700'
+- name: Download Docker signing key
   ansible.builtin.get_url:
     url: "{{ docker_ubuntu_key_url }}"
     dest: "{{ awx_project_directory }}/{{ gpg_keys_directory }}/docker.gpg"
-    mode: '600'
-- name: Check if docker key is already installed
+    mode: '0600'
+- name: Check if Docker key is already installed
   become: true
   ansible.builtin.stat:
     path: "{{ docker_apt_keyring_file }}"
     checksum_algorithm: sha256
     get_checksum: true
   register: docker_gpg_key
-- name: Dearmor docker signing key
+- name: Dearmor Docker signing key
   become: true
   ansible.builtin.command: "gpg --yes -o {{ docker_apt_keyring_file }} --dearmor {{ awx_project_directory }}/{{ gpg_keys_directory }}/docker.gpg"
   changed_when: true
   when: (docker_gpg_key.stat.checksum is undefined)
-- name: Add docker apt repository
+- name: Add Docker apt repository
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ architecture_mapping[ansible_facts['architecture']] }}
+    repo: "deb [arch={{ mapping[ansible_facts['architecture']] }}
       signed-by={{ docker_apt_keyring_file }}] {{ docker_ubuntu_repo_url }}
       {{ ansible_facts['distribution_release'] }} stable"
     state: present

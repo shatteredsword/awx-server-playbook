@@ -8,7 +8,12 @@ docker_ubuntu_key_url: https://download.docker.com/linux/ubuntu/gpg
 docker_apt_keyring_file: /etc/apt/keyrings/docker.gpg
 docker_ubuntu_repo_url: https://download.docker.com/linux/ubuntu
 awx_operator_kustomization_directory: operator
+awx_operator_kustomized: awx-operator.yml
 awx_kustomization_directory: kustomize
+awx_instance_file: awx.yml
+awx_instance_kustomization: kustomization.yml
+awx_instance_kustomized: awx-final.yml
+awx_password_file: awx_password.yml
 awx_secrets_directory: secrets
 github_base: "https://github.com"
 github_release_base: "https://api.github.com/repos"
@@ -17,13 +22,17 @@ github_download: "releases/download"
 gpg_keys_directory: keys
 k3s_url: "https://get.k3s.io"
 k3s_install_directory: /usr/local/bin
-kustomize_url: "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.0.1/kustomize_v5.0.1_linux_amd64.tar.gz"
-kustomize_install_directory: /usr/bin
+kubectl_install_directory: /usr/local/bin
+kubectl_command: kubectl
+kustomize_install_directory: /usr/local/bin
+linux_group: nogroup
+microk8s_install_directory: /snap/bin
+minikube_install_directory: /usr/local/bin
 minikube_service_name: minikube
 nginx_config_name: awx
 nodeport_port: 30080
 systemd_installation_directory: /etc/systemd/system
-architecture_mapping:
+mapping:
   x86_64: amd64
   armv6l: armhf
   armv7l: armhf
@@ -31,14 +40,5 @@ architecture_mapping:
   i386: i386
   ppc64: ppc64le
   s390x: x390x
-kustomize_mapping:
-  x86_64: amd64
-  aarch64: arm64
   Linux: linux
-  ppc64: ppc64le
-  s390x: s390x
-kubectl_mapping:
-  MicroK8s: "microk8s kubectl"
-  Minikube: "minikube kubectl --"
-  K3s: "sudo k3s kubectl"
 ...

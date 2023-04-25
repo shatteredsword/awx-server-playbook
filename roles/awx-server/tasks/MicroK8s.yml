@@ -19,8 +19,16 @@
 - name: Reload SSH Connection
   ansible.builtin.meta:
     reset_connection
+- name: Create Kubectl Shortcut Script
+  become: true
+  ansible.builtin.copy:
+    mode: '0755'
+    owner: root
+    group: root
+    src: microk8s_kubectl
+    dest: "{{ kubectl_install_directory }}/{{ kubectl_command }}"
 - name: Wait for microk8s pods to be ready
-  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+  ansible.builtin.command: "{{ kubectl_command }} get pods
     -n kube-system
     -l 'k8s-app in (calico-node, calico-kube-controllers)'
     -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
@@ -42,7 +50,7 @@
   when: extracted_value == "disabled"
   changed_when: extracted_value == "disabled"
 - name: Wait for storage pods to be ready
-  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+  ansible.builtin.command: "{{ kubectl_command }} get pods
     -n kube-system
     -l 'k8s-app=hostpath-provisioner'
     -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
@@ -60,7 +68,7 @@
   when: extracted_value == "disabled"
   changed_when: extracted_value == "disabled"
 - name: Wait for dns pods to be ready
-  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+  ansible.builtin.command: "{{ kubectl_command }} get pods
     -n kube-system
     -l 'k8s-app=kube-dns'
     -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
@@ -78,7 +86,7 @@
   when: extracted_value == "disabled"
   changed_when: extracted_value == "disabled"
 - name: Wait for ingress pods to be ready
-  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+  ansible.builtin.command: "{{ kubectl_command }} get pods
     -n ingress
     -l 'name=nginx-ingress-microk8s'
     -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"

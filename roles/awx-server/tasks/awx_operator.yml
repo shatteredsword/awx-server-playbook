@@ -1,42 +1,42 @@
 ---
-- name: Create AWX operator kustomization directory
+- name: Create AWX operator Kustomize directory
   become: true
   ansible.builtin.file:
     path: "{{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}"
     state: directory
     mode: '0755'
     owner: "{{ ansible_user_id }}"
-    group: nogroup
-- name: Get latest version number of the AWX operator
+    group: "{{ linux_group }}"
+- name: Get the AWX operator latest version number
   ansible.builtin.uri:
     url: "{{ github_release_base }}/{{ github_account }}/{{ github_repo }}/{{ github_release_end }}"
   vars:
     github_account: ansible
     github_repo: awx-operator
   register: awx_release
-- name: Create AWX operator kustomization file
+- name: Create AWX operator Kustomize file
   ansible.builtin.template:
     src: operator_kustomization.j2
-    dest: "{{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}/kustomization.yaml"
-    mode: '600'
+    dest: "{{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}/{{ awx_instance_kustomization }}"
+    mode: '0600'
 - name: Check if base build file exists
   ansible.builtin.stat:
-    path: "{{ awx_project_directory }}/awx-operator.yaml"
+    path: "{{ awx_project_directory }}/{{ awx_operator_kustomized }}"
   register: base_build_file
-- name: Build awx operator kustomize file
+- name: Build AWX operator Kustomize file
   ansible.builtin.command: "kustomize build {{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}
-    -o {{ awx_project_directory }}/awx-operator.yaml"
+    -o {{ awx_project_directory }}/{{ awx_operator_kustomized }}"
   when: not base_build_file.stat.exists
   changed_when: not base_build_file.stat.exists # TODO: make changed_when section accurate
-- name: Check if awx operator already exists
-  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} get pods
+- name: Check if AWX operator already exists
+  ansible.builtin.command: "{{ kubectl_command }} get pods
     -l control-plane=controller-manager
     -n awx
     -o=jsonpath='{range.items[*]}{.status.containerStatuses[*].ready}{end}'"
   register: awx_operator_status
   changed_when: false
-- name: Build awx operator cluster
-  ansible.builtin.command: "{{ kubectl_mapping[k8s_method] }} apply -f {{ awx_project_directory }}/awx-operator.yaml"
+- name: Build AWX operator cluster
+  ansible.builtin.command: "{{ kubectl_command }} apply -f {{ awx_project_directory }}/{{ awx_operator_kustomized }}"
   when: awx_operator_status.stdout != "true true"
   changed_when: awx_operator_status.stdout != "true true"
 ...

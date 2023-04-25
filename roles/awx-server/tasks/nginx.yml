@@ -13,12 +13,12 @@
     state: started
   when: nginx_installed is changed # noqa: no-handler
   changed_when: nginx_installed is changed
-- name: Configure nginx host file
+- name: Configure Nginx Host File
   become: true
   ansible.builtin.template:
     src: awx_nginx.conf.j2
     dest: /etc/nginx/sites-available/default
-    mode: '644'
+    mode: '0644'
   register: nginx_hostfile
 - name: Reload Nginx Service
   become: true

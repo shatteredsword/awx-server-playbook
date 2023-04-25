@@ -1,11 +1,20 @@
 ---
-- name: Install Minikube
-  ansible.builtin.include_tasks: minikube.yml
-  when: k8s_method == "Minikube"
-- name: Install K3s
-  ansible.builtin.include_tasks: k3s.yml
-  when: k8s_method == "K3s"
-- name: Install MicroK8s
-  ansible.builtin.include_tasks: microk8s-on-linux.yml
-  when: k8s_method == "MicroK8s"
+- name: Check For existing Minikube Install
+  ansible.builtin.stat:
+    path: "{{ minikube_install_directory }}/minikube"
+  register: minikube_install
+- name: Check For existing K3s Install
+  ansible.builtin.stat:
+    path: "{{ k3s_install_directory }}/k3s"
+  register: k3s_install
+- name: Check For existing MicroK8s Install
+  ansible.builtin.stat:
+    path: "{{ microk8s_install_directory }}/microk8s"
+  register: microk8s_install
+- name: Install {{ k8s_method }}
+  ansible.builtin.include_tasks: "{{ k8s_method }}.yml"
+  when:
+    - not minikube_install.stat.exists
+    - not k3s_install.stat.exists
+    - not microk8s_install.stat.exists
 ...

@@ -63,8 +63,8 @@ password_menu() {
 }
 
 kubernetes_menu
-ssh-copy-id $USERNAME@$HOST
+ssh-copy-id "$USERNAME"@"$HOST"
 START="$(date +%s)"
-ansible-playbook awx-server-playbook.yml -i "$HOST," --ask-become-pass --extra-vars "ssh_user=$USERNAME awx_host=$HOST awx_root_password=$PASSWORD k8s_method=$KUBERNETES firewall_method=$FIREWALL"
-DURATION=$[ $(date +%s) - ${START} ]
+ansible-playbook awx_server_playbook.yml -i "$HOST," --ask-become-pass --extra-vars "ssh_user=$USERNAME awx_host=$HOST awx_root_password=$PASSWORD k8s_method=$KUBERNETES firewall_method=$FIREWALL"
+DURATION=$(( $(date +%s) - START ))
 echo "playbook took ${DURATION} seconds"

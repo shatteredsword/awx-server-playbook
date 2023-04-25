@@ -6,9 +6,10 @@
     github_account: kubernetes-sigs
     github_repo: kustomize
   register: kustomize_release
-- name: Install kustomize
+- name: Install Kustomize
   become: true
   ansible.builtin.unarchive:
+    mode: '0755'
     src: "{{ kustomize_download }}"
     dest: "{{ kustomize_install_directory }}"
     remote_src: true
@@ -18,8 +19,8 @@
     kustomize_version: "{{ kustomize_release.json.tag_name | split('/') | last }}"
     release_file:
       "{{ github_repo }}_{{ kustomize_version
-      }}_{{ kustomize_mapping[ansible_facts['system']]
-      }}_{{ kustomize_mapping[ansible_facts['architecture']] }}.tar.gz"
+      }}_{{ mapping[ansible_facts['system']]
+      }}_{{ mapping[ansible_facts['architecture']] }}.tar.gz"
     kustomize_download:
       "{{ github_base }}/{{ github_account }}/{{ github_repo }}/{{ github_download }}/{{ github_repo }}/{{ kustomize_version }}/{{ release_file }}"
 ...
