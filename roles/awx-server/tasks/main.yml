@@ -5,8 +5,6 @@
   ansible.builtin.include_tasks: "{{ firewall_method }}.yml"
 - name: Install Kubernetes
   ansible.builtin.include_tasks: kubernetes.yml
-- name: Install Kustomize
-  ansible.builtin.include_tasks: kustomize.yml
 - name: Install AWX operator
   ansible.builtin.include_tasks: awx_operator.yml
 - name: Add Kubernetes secrets

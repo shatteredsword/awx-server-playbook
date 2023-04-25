@@ -11,7 +11,6 @@ awx_operator_kustomization_directory: operator
 awx_operator_kustomized: awx-operator.yml
 awx_kustomization_directory: kustomize
 awx_instance_file: awx.yml
-awx_instance_kustomization: kustomization.yml
 awx_instance_kustomized: awx-final.yml
 awx_password_file: awx_password.yml
 awx_secrets_directory: secrets

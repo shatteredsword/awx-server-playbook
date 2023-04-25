@@ -17,17 +17,8 @@
 - name: Create AWX operator Kustomize file
   ansible.builtin.template:
     src: operator_kustomization.j2
-    dest: "{{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}/{{ awx_instance_kustomization }}"
+    dest: "{{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}/kustomization.yml"
     mode: '0600'
-- name: Check if base build file exists
-  ansible.builtin.stat:
-    path: "{{ awx_project_directory }}/{{ awx_operator_kustomized }}"
-  register: base_build_file
-- name: Build AWX operator Kustomize file
-  ansible.builtin.command: "kustomize build {{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}
-    -o {{ awx_project_directory }}/{{ awx_operator_kustomized }}"
-  when: not base_build_file.stat.exists
-  changed_when: not base_build_file.stat.exists # TODO: make changed_when section accurate
 - name: Check if AWX operator already exists
   ansible.builtin.command: "{{ kubectl_command }} get pods
     -l control-plane=controller-manager
@@ -36,7 +27,7 @@
   register: awx_operator_status
   changed_when: false
 - name: Build AWX operator cluster
-  ansible.builtin.command: "{{ kubectl_command }} apply -f {{ awx_project_directory }}/{{ awx_operator_kustomized }}"
+  ansible.builtin.command: "{{ kubectl_command }} apply -k {{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}"
   when: awx_operator_status.stdout != "true true"
   changed_when: awx_operator_status.stdout != "true true"
 ...
