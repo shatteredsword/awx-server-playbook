@@ -12,7 +12,6 @@
     src: "{{ awx_instance_file }}.j2"
     dest: "{{ awx_project_directory }}/{{ awx_kustomization_directory }}/{{ awx_instance_file }}"
     mode: '0600'
-  register: awx_config
 - name: Create AWX instance Kustomize file
   ansible.builtin.template:
     src: awx_kustomization.j2
@@ -68,6 +67,18 @@
   ansible.builtin.uri:
     url: "http://{{ ansible_facts['fqdn'] }}"
     status_code: 200
+  when: ssl_enabled == "false"
+  register: awx_url
+  until: awx_url.status == 200
+  retries: 100000
+  delay: 10
+  changed_when: false
+- name: Wait for URL to be accessible
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "https://{{ ansible_facts['fqdn'] }}"
+    status_code: 200
+  when: ssl_enabled == "true"
   register: awx_url
   until: awx_url.status == 200
   retries: 100000

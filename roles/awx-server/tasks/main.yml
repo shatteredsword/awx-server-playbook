@@ -11,6 +11,9 @@
   ansible.builtin.include_tasks: kubernetes_secrets.yml
 - name: Install AWX
   ansible.builtin.include_tasks: awx_instance.yml
+- name: Install Kubernetes Dashboard
+  ansible.builtin.include_tasks: kubernetes_dashboard.yml
+  when: kubernetes_dashboard == "true"
 # - name: Install AWX Command Line Utilities
 #   ansible.builtin.include_tasks: awx_cli.yml
 ...

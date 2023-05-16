@@ -20,11 +20,35 @@
     dest: /etc/nginx/sites-available/default
     mode: '0644'
   register: nginx_hostfile
+  when: ssl_enabled == "false"
+- name: Configure Nginx Host File with SSL
+  become: true
+  ansible.builtin.template:
+    src: awx_nginx_ssl.conf.j2
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+  register: nginx_hostfile
+  when: ssl_enabled == "true"
+- name: Configure Nginx Host File for Kubernetes Dashboard
+  become: true
+  ansible.builtin.template:
+    src: dashboard_nginx.conf.j2
+    dest: /etc/nginx/sites-available/dashboard
+    mode: '0644'
+  register: dashboard_hostfile
+  when: kubernetes_dashboard == "true"
+- name: Enable Nginx Host File for Kubernetes Dashboard
+  become: true
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/dashboard
+    dest: /etc/nginx/sites-enabled/dashboard
+    state: link
+  when: kubernetes_dashboard == "true"
 - name: Reload Nginx Service
   become: true
   ansible.builtin.service:
     name: nginx
     state: reloaded
-  when: nginx_hostfile is changed # noqa: no-handler
-  changed_when: nginx_hostfile is changed
+  when: (nginx_hostfile is changed) or (dashboard_hostfile is changed) # noqa: no-handler
+  changed_when: (nginx_hostfile is changed) or (dashboard_hostfile is changed)
 ...

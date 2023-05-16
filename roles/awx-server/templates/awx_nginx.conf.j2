@@ -1,5 +1,5 @@
 server {
-  listen {{ web_port }};
+  listen {{ awx_web_port }};
   server_name {{ ansible_facts['fqdn'] }};
   access_log /var/log/nginx/awx.access.log;
   error_log /var/log/nginx/awx.error.log;

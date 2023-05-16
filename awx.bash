@@ -59,12 +59,24 @@ password_menu() {
 	EXITSTATUS=$?
 	if [ $EXITSTATUS = 1 ]; then
 		user_menu
+	else
+		dashboard_menu
+	fi
+}
+
+dashboard_menu() {
+	if (whiptail --title "AWX Installation" --yesno \
+	"Enable Kubernetes Dashboard?" 8 39 \
+	); then
+		DASHBOARD="true"
+	else
+		DASHBOARD="false"
 	fi
 }
 
 kubernetes_menu
 ssh-copy-id "$USERNAME"@"$HOST"
 START="$(date +%s)"
-ansible-playbook awx_server_playbook.yml -i "$HOST," --ask-become-pass --extra-vars "ssh_user=$USERNAME awx_host=$HOST awx_root_password=$PASSWORD k8s_method=$KUBERNETES firewall_method=$FIREWALL"
+ansible-playbook awx_server_playbook.yml -i "$HOST," --ask-become-pass --extra-vars "ssh_user=$USERNAME awx_host=$HOST awx_root_password=$PASSWORD k8s_method=$KUBERNETES firewall_method=$FIREWALL kubernetes_dashboard=$DASHBOARD"
 DURATION=$(( $(date +%s) - START ))
 echo "playbook took ${DURATION} seconds"
