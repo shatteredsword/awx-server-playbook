@@ -1,0 +1,20 @@
+---
+- name: Nginx Configuration
+  ansible.builtin.include_tasks: nginx.yml
+- name: Configure firewall
+  ansible.builtin.include_tasks: "{{ awx_server_firewall_method }}.yml"
+- name: Install Kubernetes
+  ansible.builtin.include_tasks: kubernetes.yml
+- name: Install AWX operator
+  ansible.builtin.include_tasks: awx_operator.yml
+- name: Add Kubernetes secrets
+  ansible.builtin.include_tasks: kubernetes_secrets.yml
+- name: Install AWX
+  ansible.builtin.include_tasks: awx_instance.yml
+- name: Install Kubernetes Dashboard
+  ansible.builtin.include_tasks: kubernetes_dashboard.yml
+  when: awx_server_k8s_dashboard == "true"
+- name: Install AWX CLI Tools
+  ansible.builtin.include_tasks: awx_cli.yml
+  when: awx_cli == "true"
+...

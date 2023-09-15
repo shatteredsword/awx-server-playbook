@@ -1,0 +1,65 @@
+---
+amount_of_ram: 6g
+awx_server_host: ansible.example.com
+no_of_cpus: 4
+awx_project_directory: "/opt/awx"
+awx_cli: "false"
+awx_cli_documentation_port: 8000
+awx_web_port: 80
+awx_web_ssl_port: 443
+awx_release_url: https://api.github.com/repos/ansible/awx-operator/releases/latest
+awx_server_admin_password: ""
+dashboard_admin_user: admin-user
+dashboard_patch_file: dashboard_patch
+dashboard_nodeport_port: 30081
+dashboard_kustomization_directory: dashboard
+dashboard_user_file: dashboard_user
+dashboard_web_port: 8080
+dashboard_web_ssl_port: 8443
+docker_ubuntu_key_url: https://download.docker.com/linux/ubuntu/gpg
+docker_apt_keyring_file: /etc/apt/keyrings/docker.gpg
+docker_ubuntu_repo_url: https://download.docker.com/linux/ubuntu
+awx_operator_kustomization_directory: operator
+awx_operator_kustomized: awx-operator.yml
+awx_kustomization_directory: kustomize
+awx_instance_file: awx.yml
+awx_instance_kustomized: awx-final.yml
+awx_password_file: awx_password.yml
+awx_secrets_directory: secrets
+awx_server_firewall_method: UFW
+github_base: "https://github.com"
+github_release_base: "https://api.github.com/repos"
+github_release_end: "releases/latest"
+github_download: "releases/download"
+gpg_keys_directory: keys
+k3s_url: "https://get.k3s.io"
+k3s_install_directory: /usr/local/bin
+awx_server_k8s_method: Minikube
+kubectl_install_directory: /usr/local/bin
+kubectl_command: kubectl
+kubectl_version_file: https://dl.k8s.io/release/stable.txt
+kubectl_release_base: "https://dl.k8s.io"
+awx_server_k8s_dashboard: "false"
+kustomize_install_directory: /usr/local/bin
+linux_group: nogroup
+microk8s_install_directory: /snap/bin
+minikube_install_directory: /usr/local/bin
+minikube_service_name: minikube
+nginx_config_name: awx
+nodeport_port: 30080
+ssh_port: 22
+awx_server_ssh_user: ansible
+ssl_certificate_path: /etc/ssl/certs/ssl-cert-snakeoil.pem
+ssl_certificate_key_path: /etc/ssl/private/ssl-cert-snakeoil.key
+systemd_installation_directory: /etc/systemd/system
+validate_ssl_certs: false
+mapping:
+  x86_64: amd64
+  armv6l: armhf
+  armv7l: armhf
+  aarch64: arm64
+  i386: i386
+  ppc64: ppc64le
+  s390x: x390x
+  Linux: linux
+...

@@ -1,0 +1,45 @@
+---
+- name: Install Nginx Webserver
+  become: true
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  register: nginx_installed
+- name: Enable Nginx Service
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started
+  when: nginx_installed is changed # noqa: no-handler
+  changed_when: nginx_installed is changed
+- name: Configure Nginx Host File with SSL
+  become: true
+  ansible.builtin.template:
+    src: awx_nginx_ssl.conf.j2
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+  register: nginx_hostfile
+- name: Configure Nginx Host File for Kubernetes Dashboard
+  become: true
+  ansible.builtin.template:
+    src: dashboard_nginx.conf.j2
+    dest: /etc/nginx/sites-available/dashboard
+    mode: '0644'
+  register: dashboard_hostfile
+  when: awx_server_k8s_dashboard == "true"
+- name: Enable Nginx Host File for Kubernetes Dashboard
+  become: true
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/dashboard
+    dest: /etc/nginx/sites-enabled/dashboard
+    state: link
+  when: awx_server_k8s_dashboard == "true"
+- name: Reload Nginx Service
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  when: (nginx_hostfile is changed) or (dashboard_hostfile is changed) # noqa: no-handler
+  changed_when: (nginx_hostfile is changed) or (dashboard_hostfile is changed)
+...

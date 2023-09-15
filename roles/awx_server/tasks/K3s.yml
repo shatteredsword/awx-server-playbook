@@ -1,0 +1,31 @@
+---
+- name: Create AWX Project Directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ awx_project_directory }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ linux_group }}"
+- name: Get k3s installation script
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ k3s_url }}"
+    dest: "{{ awx_project_directory }}/k3s.sh"
+    mode: '0700'
+- name: Execute k3s installation script
+  become: true
+  ansible.builtin.command: "/bin/sh {{ awx_project_directory }}/k3s.sh --write-kubeconfig-mode 644"
+  args:
+    creates: "{{ k3s_install_directory }}/k3s"
+- name: Wait for K3s pods to be ready
+  ansible.builtin.command: "{{ kubectl_command }} get pods
+    -n kube-system
+    -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'
+    --sort-by='{.status.containerStatuses[*].image}'"
+  register: k3s_pods_status
+  until: k3s_pods_status.stdout == "falsefalsetrue truetruetruetruetrue"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+...

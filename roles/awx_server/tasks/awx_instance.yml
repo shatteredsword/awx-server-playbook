@@ -1,0 +1,76 @@
+---
+- name: Create AWX kustomization directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ awx_project_directory }}/{{ awx_kustomization_directory }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ linux_group }}"
+- name: Configure AWX instance
+  ansible.builtin.template:
+    src: "{{ awx_instance_file }}.j2"
+    dest: "{{ awx_project_directory }}/{{ awx_kustomization_directory }}/{{ awx_instance_file }}"
+    mode: '0600'
+- name: Create AWX instance Kustomize file
+  ansible.builtin.template:
+    src: awx_kustomization.j2
+    dest: "{{ awx_project_directory }}/{{ awx_kustomization_directory }}/kustomization.yml"
+    mode: '0600'
+  register: awx_server_kustomize_file
+- name: Check if AWX instance already exists
+  ansible.builtin.command: "{{ kubectl_command }} get pods
+    -l app.kubernetes.io/managed-by=awx-operator
+    -n awx
+    -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'
+    --sort-by='{.status.containerStatuses[*].image}'"
+  register: awx_server_instance_status
+  changed_when: false
+- name: Build AWX cluster
+  ansible.builtin.command: "{{ kubectl_command }} apply -k {{ awx_project_directory }}/{{ awx_kustomization_directory }}"
+  when: awx_server_instance_status.stdout != "truetrue true true truetrue true true"
+  changed_when: awx_server_instance_status.stdout != "truetrue true true truetrue true true" # noqa: no-handler
+- name: Wait for PostgreSQL pod to be ready
+  ansible.builtin.command: "{{ kubectl_command }} get pods -l app.kubernetes.io/name=postgres-13
+    -n awx -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: awx_server_postgres_pod_status
+  until: awx_server_postgres_pod_status.stdout == "true"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+- name: Wait for AWX task pods to be ready
+  ansible.builtin.command: "{{ kubectl_command }} get pods -l app.kubernetes.io/name=awx-task
+    -n awx -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: awx_server_task_pods_status
+  until: awx_server_task_pods_status.stdout == "true true true true"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+- name: Wait for AWX web pods to be ready
+  ansible.builtin.command: "{{ kubectl_command }} get pods -l app.kubernetes.io/name=awx-web
+    -n awx -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: awx_server_web_pods_status
+  until: awx_server_web_pods_status.stdout == "true true true"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+- name: Wait for operator rollout to be ready
+  ansible.builtin.command: "{{ kubectl_command }} rollout status deployments/awx-operator-controller-manager -n awx -w"
+  changed_when: false
+- name: Wait for task rollout to be ready
+  ansible.builtin.command: "{{ kubectl_command }} rollout status deployments/awx-task -n awx -w"
+  changed_when: false
+- name: Wait for web rollout to be ready
+  ansible.builtin.command: "{{ kubectl_command }} rollout status deployments/awx-web -n awx -w"
+  changed_when: false
+- name: Wait for URL to be accessible
+  ansible.builtin.uri:
+    validate_certs: "{{ validate_ssl_certs }}"
+    url: "https://{{ ansible_facts['fqdn'] }}"
+    status_code: 200
+  register: awx_server_url
+  until: awx_server_url.status == 200
+  retries: 100000
+  delay: 10
+  changed_when: false
+...

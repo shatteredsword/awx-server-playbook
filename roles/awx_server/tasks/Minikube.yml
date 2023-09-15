@@ -1,0 +1,74 @@
+---
+- name: Install Docker on Ubuntu
+  ansible.builtin.include_tasks: docker.yml
+- name: Configure minikube service
+  become: true
+  ansible.builtin.template:
+    src: minikube.service.j2
+    dest: "{{ systemd_installation_directory }}/minikube.service"
+    mode: '0644'
+  register: minikube_service
+- name: Systemctl Daemon Reload
+  become: true
+  ansible.builtin.service:
+    daemon_reload: true
+  when: minikube_service is changed # noqa: no-handler
+  changed_when: minikube_service is changed
+- name: Get latest version number of Minikube
+  ansible.builtin.uri:
+    url: "{{ github_release_base }}/{{ github_account }}/{{ github_repo }}/{{ github_release_end }}"
+  vars:
+    github_account: kubernetes
+    github_repo: minikube
+  register: minikube_release
+- name: Download Minikube
+  become: true
+  ansible.builtin.unarchive:
+    owner: root
+    group: root
+    mode: '0600'
+    remote_src: true
+    src: "{{ minikube_download }}"
+    dest: "{{ awx_project_directory }}"
+  vars:
+    github_account: kubernetes
+    github_repo: minikube
+    minikube_version: "{{ minikube_release.json.tag_name | split('/') | last }}"
+    release_file:
+      "{{ github_repo
+      }}-{{ mapping[ansible_facts['system']]
+      }}-{{ mapping[ansible_facts['architecture']]
+      }}.tar.gz"
+    minikube_download:
+      "{{ github_base }}/{{ github_account }}/{{ github_repo }}/{{ github_download }}/{{ minikube_version }}/{{ release_file }}"
+- name: Install minikube
+  become: true
+  ansible.builtin.copy:
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: true
+    src: "{{ awx_project_directory
+      }}/out/{{ github_repo
+      }}-{{ mapping[ansible_facts['system']]
+      }}-{{ mapping[ansible_facts['architecture']] }}"
+    dest: "{{ minikube_install_directory
+      }}/{{ github_repo
+      }}"
+  vars:
+    github_repo: minikube
+- name: Start and enable minikube service
+  become: true
+  ansible.builtin.service:
+    name: minikube
+    enabled: true
+    state: started
+- name: Create Kubectl Shortcut Script
+  become: true
+  ansible.builtin.copy:
+    mode: '0755'
+    owner: root
+    group: root
+    src: minikube_kubectl
+    dest: "{{ kubectl_install_directory }}/{{ kubectl_command }}"
+...

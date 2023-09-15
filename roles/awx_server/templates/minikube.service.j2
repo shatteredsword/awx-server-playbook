@@ -1,0 +1,15 @@
+[Unit]
+Description=Start Minikube Cluster
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=minikube start --cpus={{ no_of_cpus }} --memory={{ amount_of_ram }} --addons=ingress
+RemainAfterExit=true
+ExecStop=minikube stop
+StandardOutput=journal
+User={{ ansible_user_id }}
+Group=docker
+
+[Install]
+WantedBy=multi-user.target

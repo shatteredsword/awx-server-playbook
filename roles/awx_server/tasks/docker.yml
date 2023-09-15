@@ -1,0 +1,57 @@
+---
+- name: Install prerequisite packages
+  become: true
+  ansible.builtin.package:
+    name:
+      - ca-certificates
+      - gnupg
+- name: Create Docker key temporary directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ awx_project_directory }}/{{ gpg_keys_directory }}"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ linux_group }}"
+    mode: '0700'
+- name: Download Docker signing key
+  ansible.builtin.get_url:
+    url: "{{ docker_ubuntu_key_url }}"
+    dest: "{{ awx_project_directory }}/{{ gpg_keys_directory }}/docker.gpg"
+    mode: '0600'
+- name: Check if Docker key is already installed
+  become: true
+  ansible.builtin.stat:
+    path: "{{ docker_apt_keyring_file }}"
+    checksum_algorithm: sha256
+    get_checksum: true
+  register: docker_gpg_key
+- name: Dearmor Docker signing key
+  become: true
+  ansible.builtin.command: "gpg --yes -o {{ docker_apt_keyring_file }} --dearmor {{ awx_project_directory }}/{{ gpg_keys_directory }}/docker.gpg"
+  changed_when: true
+  when: (docker_gpg_key.stat.checksum is undefined)
+- name: Add Docker apt repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ mapping[ansible_facts['architecture']] }}
+      signed-by={{ docker_apt_keyring_file }}] {{ docker_ubuntu_repo_url }}
+      {{ ansible_facts['distribution_release'] }} stable"
+    state: present
+    filename: docker
+- name: Install docker packages
+  become: true
+  ansible.builtin.package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+- name: Add ansible to docker group
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    groups: docker
+    append: true
+...

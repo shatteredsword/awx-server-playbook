@@ -1,0 +1,69 @@
+---
+- name: Create Dashboard Kustomize directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ awx_project_directory }}/dashboard"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ linux_group }}"
+- name: Get the Kubernetes dashboard latest version number
+  ansible.builtin.uri:
+    url: "{{ github_release_base }}/{{ awx_server_github_account }}/{{ awx_server_github_repo }}/{{ github_release_end }}"
+  vars:
+    awx_server_github_account: kubernetes
+    awx_server_github_repo: dashboard
+  register: awx_server_dashboard_release
+- name: Create Kubernetes Dashboard Kustomize file
+  ansible.builtin.template:
+    src: dashboard_kustomization.j2
+    dest: "{{ awx_project_directory }}/{{ dashboard_kustomization_directory }}/kustomization.yml"
+    mode: '0600'
+- name: Configure Dashboard Patch File
+  ansible.builtin.template:
+    src: "{{ dashboard_patch_file }}.j2"
+    dest: "{{ awx_project_directory }}/{{ dashboard_kustomization_directory }}/{{ dashboard_patch_file }}.yml"
+    mode: '0600'
+- name: Configure Dashboard User File
+  ansible.builtin.template:
+    src: "{{ dashboard_user_file }}.j2"
+    dest: "{{ awx_project_directory }}/{{ dashboard_kustomization_directory }}/{{ dashboard_user_file }}.yml"
+    mode: '0600'
+- name: Check if Kubernetes Dashboard already exists
+  ansible.builtin.command: "{{ kubectl_command }} get pods
+    -n kubernetes-dashboard
+    -o=jsonpath='{range.items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: dashboard_status
+  changed_when: false
+- name: Build Kubernetes Dashboard
+  ansible.builtin.command: "{{ kubectl_command }} apply -k {{ awx_project_directory }}/{{ dashboard_kustomization_directory }}"
+  when: dashboard_status.stdout != "truetrue"
+  changed_when: dashboard_status.stdout != "truetrue"
+- name: Wait for Kubernetes Dashboard pod to be ready
+  ansible.builtin.command: "{{ kubectl_command }} get pods
+    -n kubernetes-dashboard
+    -o=jsonpath='{range.items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: dashboard_pod_status
+  until: dashboard_pod_status.stdout == "truetrue"
+  retries: 10000000
+  delay: 10
+  changed_when: false
+- name: Create Dashboard Token
+  ansible.builtin.command: "{{ kubectl_command }}
+    -n kubernetes-dashboard create token {{ dashboard_admin_user }}"
+  changed_when: true
+  register: dashboard_token
+- name: Wait for the Dashboard URL to be accessible
+  ansible.builtin.uri:
+    validate_certs: "{{ validate_ssl_certs }}"
+    url: "https://{{ ansible_facts['fqdn'] }}:{{ dashboard_web_ssl_port }}"
+    status_code: 200
+  register: dashboard_url
+  until: dashboard_url.status == 200
+  retries: 100000
+  delay: 10
+  changed_when: false
+- name: Print token value
+  ansible.builtin.debug:
+    msg: "{{ dashboard_token.stdout }}"
+...

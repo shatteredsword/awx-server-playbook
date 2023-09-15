@@ -1,0 +1,41 @@
+---
+- name: Create AWX Project Directory
+  become: true
+  ansible.builtin.package:
+    name:
+      - git
+      - python-is-python3
+      - python3-pip
+      - python3-virtualenv
+- name: Install AWX CLI
+  ansible.builtin.pip:
+    name:
+      - awxkit
+      - ansible
+      - ansible-lint
+      - argcomplete
+      - sphinx
+      - sphinxcontrib-autoprogram
+- name: Setup Ansible command shell completion
+  ansible.builtin.command:
+    cmd: activate-global-python-argcomplete --user
+    creates: "{{ ansible_env.HOME }}/.bash_completion"
+- name: Get AWX CLI Token
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/awx
+    --conf.host https://localhost
+    --conf.username admin
+    --conf.password {{ awx_server_admin_password }}
+    --conf.insecure
+    login"
+  changed_when: true
+  register: awx_server_token_json
+- name: Set AWX CLI environment variables
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    block: |
+      export CONTROLLER_HOST=https://localhost
+      export CONTROLLER_OAUTH_TOKEN={{ awx_token }}
+  vars:
+    awx_server_clean_json: "{{ awx_server_token_json.stdout | ansible.builtin.to_json | ansible.builtin.from_json }}"
+    awx_server_awx_token: "{{ awx_server_clean_json | community.general.json_query('token') }}"
+...

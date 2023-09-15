@@ -1,0 +1,33 @@
+---
+- name: Create AWX operator Kustomize directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ linux_group }}"
+- name: Get the AWX operator latest version number
+  ansible.builtin.uri:
+    url: "{{ github_release_base }}/{{ awx_server_github_account }}/{{ awx_server_github_repo }}/{{ github_release_end }}"
+  vars:
+    awx_server_github_account: ansible
+    awx_server_github_repo: awx-operator
+  register: awx_server_release
+- name: Create AWX operator Kustomize file
+  ansible.builtin.template:
+    src: operator_kustomization.j2
+    dest: "{{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}/kustomization.yml"
+    mode: '0600'
+- name: Check if AWX operator already exists
+  ansible.builtin.command: "{{ kubectl_command }} get pods
+    -l control-plane=controller-manager
+    -n awx
+    -o=jsonpath='{range.items[*]}{.status.containerStatuses[*].ready}{end}'"
+  register: awx_server_operator_status
+  changed_when: false
+- name: Build AWX operator cluster
+  ansible.builtin.command: "{{ kubectl_command }} apply -k {{ awx_project_directory }}/{{ awx_operator_kustomization_directory }}"
+  when: awx_server_operator_status.stdout != "true true"
+  changed_when: awx_server_operator_status.stdout != "true true"
+...

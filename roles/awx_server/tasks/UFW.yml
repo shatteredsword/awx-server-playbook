@@ -1,0 +1,80 @@
+---
+- name: Install UFW
+  become: true
+  ansible.builtin.package:
+    name: ufw
+    state: present
+- name: Allow Outgoing Traffic UFW
+  become: true
+  community.general.ufw:
+    direction: outgoing
+    default: allow
+- name: Deny Incoming Traffic UFW
+  become: true
+  community.general.ufw:
+    direction: incoming
+    default: deny
+- name: Allow SSH Traffic UFW
+  become: true
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "{{ ssh_port }}"
+    comment: SSH
+- name: Allow AWX HTTP Traffic
+  become: true
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "{{ awx_web_port }}"
+    comment: AWX HTTP
+- name: Allow AWX HTTPS Traffic
+  become: true
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "{{ awx_web_ssl_port }}"
+    comment: AWX HTTPS
+- name: Allow K3s supervisor
+  become: true
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: '6443'
+    comment: K3s Supervisor
+  when: awx_server_k8s_method == "K3s"
+- name: Allow K3s Pods
+  become: true
+  community.general.ufw:
+    rule: allow
+    src: 10.42.0.0/16
+    comment: K3s Pods
+  when: awx_server_k8s_method == "K3s"
+- name: Allow K3s Services
+  become: true
+  community.general.ufw:
+    rule: allow
+    src: 10.43.0.0/16
+    comment: K3s Services
+  when: awx_server_k8s_method == "K3s"
+- name: Allow Kubernetes Dashboard
+  become: true
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "{{ dashboard_web_ssl_port }}"
+    comment: Kubernetes Dashboard
+  when: awx_server_k8s_dashboard == "true"
+- name: Allow AWX CLI Documentation Web Port
+  become: true
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "{{ awx_cli_documentation_port }}"
+    comment: AWX CLI Documentation
+  when: awx_cli == "true"
+- name: Enable UFW
+  become: true
+  community.general.ufw:
+    state: enabled
+...

@@ -1,0 +1,32 @@
+---
+- name: Create AWX Project Directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ awx_project_directory }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ linux_group }}"
+- name: Get Kubectl latest version number
+  ansible.builtin.get_url:
+    url: "{{ kubectl_version_file }}"
+    dest: "{{ awx_project_directory }}/kubectl_version"
+    mode: '0600'
+- name: Get version file
+  ansible.builtin.slurp:
+    src: "{{ awx_project_directory }}/kubectl_version"
+  register: kubectl_version
+- name: Get Kubectl
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ kubectl_release_base }}/release/{{
+      kubectl_version['content'] | b64decode }}/bin/{{
+      mapping[ansible_facts['system']] }}/{{
+      mapping[ansible_facts['architecture']] }}/kubectl"
+    dest: "{{ kubectl_install_directory }}/{{ kubectl_command }}"
+    mode: '0755'
+    checksum: "sha256:{{ kubectl_release_base }}/release/{{
+      kubectl_version['content'] | b64decode }}/bin/{{
+      mapping[ansible_facts['system']] }}/{{
+      mapping[ansible_facts['architecture']] }}/kubectl.sha256"
+...
