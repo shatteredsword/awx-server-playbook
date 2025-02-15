@@ -10,7 +10,7 @@
   register: minikube_service
 - name: Systemctl Daemon Reload
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     daemon_reload: true
   when: minikube_service is changed # noqa: no-handler
   changed_when: minikube_service is changed

@@ -31,7 +31,7 @@
   when: awx_server_instance_status.stdout != "truetrue true true truetrue true true"
   changed_when: awx_server_instance_status.stdout != "truetrue true true truetrue true true" # noqa: no-handler
 - name: Wait for PostgreSQL pod to be ready
-  ansible.builtin.command: "{{ kubectl_command }} get pods -l app.kubernetes.io/name=postgres-13
+  ansible.builtin.command: "{{ kubectl_command }} get pods -l app.kubernetes.io/name=postgres-15
     -n awx -o=jsonpath='{range .items[*]}{.status.containerStatuses[*].ready}{end}'"
   register: awx_server_postgres_pod_status
   until: awx_server_postgres_pod_status.stdout == "true"

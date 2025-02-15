@@ -5,6 +5,11 @@
     name: nginx
     state: present
   register: nginx_installed
+- name: Install SSL Certs
+  become: true
+  ansible.builtin.package:
+    name: ssl-cert
+    state: present
 - name: Enable Nginx Service
   become: true
   ansible.builtin.service:

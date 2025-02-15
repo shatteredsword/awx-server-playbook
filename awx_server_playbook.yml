@@ -3,5 +3,5 @@
   hosts: "{{ awx_server_host }}"
   remote_user: "{{ awx_server_ssh_user }}"
   roles:
-    - awx-server
+    - awx_server
 ...
